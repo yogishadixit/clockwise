@@ -58,7 +58,8 @@ public class ForecastFragment extends Fragment {
     }
 
     public class FetchWeatherTask extends AsyncTask<String, Void, String> {
-        public FetchWeatherTask() {}
+
+        private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
         @Override
         protected String doInBackground(String... params) {
