@@ -4,6 +4,7 @@ package com.example.yogishadixit.sunshine.app;
  * Created by yogishadixit on 3/12/15.
  */
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -50,6 +51,7 @@ public class ForecastFragment extends Fragment {
         // Handle action bar item clicks here
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
+            new FetchWeatherTask().execute("94043,USA");
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -83,12 +85,12 @@ public class ForecastFragment extends Fragment {
         return rootView;
     }
 
-    public class FetchWeatherTask extends AsyncTask<String, Void, String> {
+    public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
 
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
         @Override
-        protected String doInBackground(String... params) {
+        protected Void doInBackground(String... params) {
             // Open a HTTP connection
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
@@ -98,7 +100,18 @@ public class ForecastFragment extends Fragment {
 
             try {
                 // Construct the URL for the OpenWeatherMap query
-                URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043,USA&mode=json&units=metric&cnt=7");
+                Uri.Builder builder = new Uri.Builder();
+                builder.scheme("http");
+                builder.authority("api.openweathermap.org");
+                builder.appendPath("data");
+                builder.appendPath("2.5");
+                builder.appendPath("forecast");
+                builder.appendPath("daily");
+                builder.appendQueryParameter("q", params[0]);
+                builder.appendQueryParameter("mode", "json");
+                builder.appendQueryParameter("units", "metric");
+                builder.appendQueryParameter("cnt", "7");
+                URL url = new URL(builder.build().toString());
 
                 // Create the request to OpenWeatherMap and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -125,6 +138,8 @@ public class ForecastFragment extends Fragment {
                 }
 
                 forecastJsonStr = buffer.toString();
+
+                Log.v(LOG_TAG, "Forecast JSON string: " + forecastJsonStr);
             }
             catch (IOException e) {
                 Log.e("PlaceholderFragment", "Error: ", e);
@@ -145,7 +160,7 @@ public class ForecastFragment extends Fragment {
                     }
                 }
             }
-            return forecastJsonStr;
+            return null;
         }
     }
 
