@@ -51,7 +51,7 @@ public class ForecastFragment extends Fragment {
         // Handle action bar item clicks here
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            new FetchWeatherTask().execute("94043,USA");
+            new FetchWeatherTask().execute("94043");
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -91,6 +91,12 @@ public class ForecastFragment extends Fragment {
 
         @Override
         protected Void doInBackground(String... params) {
+
+            // Verify that there is something passed in in params
+            if (params.length == 0) {
+                return null;
+            }
+
             // Open a HTTP connection
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
@@ -98,8 +104,18 @@ public class ForecastFragment extends Fragment {
             // This will contain the raw JSON response as a string
             String forecastJsonStr = null;
 
+            String zipCode = params[0];
+            String mode = "json";
+            String units = "metric";
+            int numDays = 7;
+
             try {
                 // Construct the URL for the OpenWeatherMap query
+                final String LOCATION_KEY = "q";
+                final String MODE_KEY = "json";
+                final String UNITS_KEY = "units";
+                final String DAYS_KEY = "cnt";
+
                 Uri.Builder builder = new Uri.Builder();
                 builder.scheme("http");
                 builder.authority("api.openweathermap.org");
@@ -107,11 +123,15 @@ public class ForecastFragment extends Fragment {
                 builder.appendPath("2.5");
                 builder.appendPath("forecast");
                 builder.appendPath("daily");
-                builder.appendQueryParameter("q", params[0]);
-                builder.appendQueryParameter("mode", "json");
-                builder.appendQueryParameter("units", "metric");
-                builder.appendQueryParameter("cnt", "7");
-                URL url = new URL(builder.build().toString());
+                builder.appendQueryParameter(LOCATION_KEY, zipCode);
+                builder.appendQueryParameter(MODE_KEY, mode);
+                builder.appendQueryParameter(UNITS_KEY, units);
+                builder.appendQueryParameter(DAYS_KEY, String.valueOf(numDays));
+                String weatherUri = builder.build().toString();
+
+                Log.v(LOG_TAG, "Built URI: " + weatherUri);
+                // Create the URL
+                URL url = new URL(weatherUri);
 
                 // Create the request to OpenWeatherMap and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
